@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Synthesis Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        #speak-btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #speak-btn:hover {
+            background-color: #45a049;
+        }
+        #status {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <button id="speak-btn">Test Speech Synthesis</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const speakBtn = document.getElementById('speak-btn');
+            const statusEl = document.getElementById('status');
+            
+            // Check if browser supports speech synthesis
+            if (!('speechSynthesis' in window)) {
+                statusEl.textContent = "Your browser doesn't support speech synthesis. Try Chrome or Edge.";
+                speakBtn.disabled = true;
+                return;
+            }
+
+            speakBtn.addEventListener('click', function() {
+                const synth = window.speechSynthesis;
+                
+                // Cancel any ongoing speech
+                synth.cancel();
+                
+                // Create and configure the utterance
+                const utterance = new SpeechSynthesisUtterance();
+                utterance.text = 'This is a test of the speech synthesis system. If you can hear this, the feature is working properly.';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                // Event handlers for better UX
+                utterance.onstart = function() {
+                    statusEl.textContent = "Speaking...";
+                    speakBtn.textContent = "Stop";
+                    speakBtn.style.backgroundColor = "#f44336";
+                };
+                
+                utterance.onend = function() {
+                    statusEl.textContent = "Speech completed";
+                    speakBtn.textContent = "Test Speech Synthesis";
+                    speakBtn.style.backgroundColor = "#4CAF50";
+                };
+                
+                utterance.onerror = function(event) {
+                    statusEl.textContent = "Error occurred: " + event.error;
+                    speakBtn.textContent = "Try Again";
+                    speakBtn.style.backgroundColor = "#FF9800";
+                };
+                
+                // Speak the text
+                synth.speak(utterance);
+            });
+        });
+    </script>
+</body>
+</html>

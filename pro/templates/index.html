@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthBot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        header {
+            background-color: #4caf50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h2 {
+            color: #4caf50;
+        }
+        p {
+            line-height: 1.6;
+        }
+        .chat-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .chat-container {
+            display: none;
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 350px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .chat-header {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .chat-body {
+            padding: 20px;
+            overflow-y: auto;
+            height: 300px;
+        }
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            background-color: #f2f2f2;
+        }
+        .user-message {
+            background-color: #4caf50;
+            color: white;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #ddd;
+        }
+        input[type="text"] {
+            width: calc(100% - 80px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 70px;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4caf50;
+            color: white;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .voice-button {
+            background-color: #ff9800;
+        }
+        .health-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>HEALTH</h1>
+        <p>FIRST AID RECOMMENDATIONS</p>
+    </header>
+
+    <div class="container">
+        <h2>Be Healthy</h2>
+        <p>Meditation plays a crucial role for being healthy. Stay hydrated by drinking water throughout the day. It's essential for maintaining good health and keeping your body functioning properly.</p>
+        <img class="health-image" src="/static/h.jpg" alt="Health Image">
+    </div>
+
+    <!-- Chatbot icon -->
+    <div class="chat-icon" id="chat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="white">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+        </svg>
+    </div>
+
+    <div class="chat-container" id="chat-container">
+        <div class="chat-header">
+            HealthBot
+        </div>
+        <div class="chat-body" id="chat-body">
+            <div class="chat-message bot-message">Hello! I'm HealthBot. How can I help you with first aid or health advice today?</div>
+        </div>
+        <div style="padding: 10px; display: flex;">
+            <input type="text" id="user-input" placeholder="Type your message...">
+            <button id="send-btn">Send</button>
+            <button class="voice-button" id="voice-btn">Voice</button>
+        </div>
+    </div>
+   
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatIcon = document.getElementById('chat-icon');
+            const chatContainer = document.getElementById('chat-container');
+            const chatBody = document.getElementById('chat-body');
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const voiceBtn = document.getElementById('voice-btn');
+
+            // Toggle chat container visibility
+            chatIcon.addEventListener('click', function() {
+                chatContainer.style.display = chatContainer.style.display === 'none' ? 'block' : 'none';
+            });
+
+            // Handle voice input
+            voiceBtn.addEventListener('click', function() {
+                if (!('webkitSpeechRecognition' in window)) {
+                    alert('Speech recognition is not supported in your browser. Please use Chrome or Edge.');
+                    return;
+                }
+
+                const recognition = new webkitSpeechRecognition();
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = function() {
+                    voiceBtn.textContent = 'Listening...';
+                    voiceBtn.style.backgroundColor = '#f44336';
+                };
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    userInput.value = transcript;
+                    sendMessage(transcript, true);
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error', event.error);
+                    chatBody.innerHTML += `<div class="chat-message bot-message">Sorry, I couldn't understand your voice. Please try again.</div>`;
+                };
+
+                recognition.onend = function() {
+                    voiceBtn.textContent = 'Voice';
+                    voiceBtn.style.backgroundColor = '#ff9800';
+                };
+
+                recognition.start();
+            });
+
+            // Handle text input
+            sendBtn.addEventListener('click', function() {
+                const message = userInput.value.trim();
+                if (message) {
+                    sendMessage(message, false);
+                }
+            });
+
+            // Allow sending messages by pressing Enter
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const message = userInput.value.trim();
+                    if (message) {
+                        sendMessage(message, false);
+                    }
+                }
+            });
+
+            // Function to send messages to the server
+            function sendMessage(message, isVoiceInput) {
+                chatBody.innerHTML += `<div class="chat-message user-message">${message}</div>`;
+                userInput.value = '';
+                chatBody.scrollTop = chatBody.scrollHeight;
+
+                fetch('http://3.128.33.43:5000/api/chat', {
+                    method: 'POST',
+                    body: JSON.stringify({ message }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const botResponse = data.message;
+                    chatBody.innerHTML += `<div class="chat-message bot-message">${botResponse}</div>`;
+                    chatBody.scrollTop = chatBody.scrollHeight;
+
+                    if (isVoiceInput) {
+                        speakResponse(botResponse);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    chatBody.innerHTML += `<div class="chat-message bot-message">Sorry, I'm having trouble connecting to the server. Please try again later.</div>`;
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                });
+            }
+
+            // Function to speak responses
+            function speakResponse(response) {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(response);
+                    speechSynthesis.speak(utterance);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
